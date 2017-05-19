@@ -3,13 +3,13 @@
  */
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.util.Collector;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple3;
+import scala.Int;
 
 
 public class measurements_per_researcher {
@@ -26,25 +26,26 @@ public class measurements_per_researcher {
 
             DataSet<Tuple3<String, Integer, Integer>> filtered_record = env
                     .readCsvFile(measurement_file_input_dir)
+                    .ignoreFirstLine()
                     .includeFields("11100000000000000")
                     .types(String.class, Integer.class, Integer.class)
                     .flatMap((line, out) -> {
-                        String lineString = line.toString();
-                        String[] values = lineString.split(",");
+                        String sample = line.f0;
+                        int fsc_a = line.f1;
+                        int ssc_a =  line.f2;
 
-                        String sample = values[0];
-                        int fsc_a = Integer.parseInt(values[1]);
-                        int ssc_a =  Integer.parseInt(values[2]);
+                        Boolean is_fsc_a_valid = ((fsc_a >= 1) && (fsc_a <= 150000));
+                        Boolean is_ssc_a_valid = ((ssc_a >= 1) && (ssc_a <= 150000));
 
-
-                        for(String value : values) {
-                            out.collect(new Tuple3<String, Integer, Integer>(sample, fsc_a, ssc_a));
+                        if ((is_fsc_a_valid ) && (is_ssc_a_valid)) {
+                            out.collect(new Tuple3<> (sample, fsc_a, ssc_a));
                         }
                     })
                     .returns(new TupleTypeInfo(TypeInformation.of(String.class), TypeInformation.of(Integer.class), TypeInformation.of(Integer.class)));
 
             filtered_record.writeAsCsv(output_file_dir);
             env.execute();
+            //filtered_record.print();
             System.out.println("End of the program!");
         }
         else{
