@@ -3,6 +3,9 @@
  */
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.typeinfo.TypeHint;
+import org.apache.flink.api.java.typeutils.TupleTypeInfo;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.util.Collector;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
@@ -30,13 +33,15 @@ public class measurements_per_researcher {
                         String[] values = lineString.split(",");
 
                         String sample = values[0];
-                        String fsc_a = values[1];
-                        String ssc_a = values[2];
+                        int fsc_a = Integer.parseInt(values[1]);
+                        int ssc_a =  Integer.parseInt(values[2]);
+
 
                         for(String value : values) {
-                            out.collect(new Tuple3<String, Integer, Integer>(sample, Integer.parseInt(fsc_a),Integer.parseInt(ssc_a)));
+                            out.collect(new Tuple3<String, Integer, Integer>(sample, fsc_a, ssc_a));
                         }
-                    });
+                    })
+                    .returns(new TupleTypeInfo(TypeInformation.of(String.class), TypeInformation.of(Integer.class), TypeInformation.of(Integer.class)));
 
             filtered_record.writeAsCsv(output_file_dir);
             env.execute();
