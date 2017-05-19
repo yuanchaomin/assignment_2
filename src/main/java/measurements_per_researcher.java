@@ -3,11 +3,13 @@
  */
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.util.Collector;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import scala.Int;
 
@@ -24,7 +26,15 @@ public class measurements_per_researcher {
             String experiment_file_input_dir = args[1];
             String output_file_dir = args[2];
 
-            DataSet<Tuple3<String, Integer, Integer>> filtered_record = env
+            DataSet<Tuple2<String, String>> experiment_record = env
+                    .readCsvFile(experiment_file_input_dir)
+                    .ignoreFirstLine()
+                    .includeFields("10000001")
+                    .types(String.class, String.class)
+                    .map(tuple -> new Tuple2<String, String>(tuple.f0, tuple.f1))
+                    .returns(new TupleTypeInfo(TypeInformation.of(String.class), TypeInformation.of(String.class)));
+
+            DataSet<Tuple2<String, Integer>> filtered_record = env
                     .readCsvFile(measurement_file_input_dir)
                     .ignoreFirstLine()
                     .includeFields("11100000000000000")
@@ -38,14 +48,37 @@ public class measurements_per_researcher {
                         Boolean is_ssc_a_valid = ((ssc_a >= 1) && (ssc_a <= 150000));
 
                         if ((is_fsc_a_valid ) && (is_ssc_a_valid)) {
-                            out.collect(new Tuple3<> (sample, fsc_a, ssc_a));
+                            out.collect(new Tuple2<> (sample, fsc_a));
                         }
                     })
-                    .returns(new TupleTypeInfo(TypeInformation.of(String.class), TypeInformation.of(Integer.class), TypeInformation.of(Integer.class)));
+                    .returns(new TupleTypeInfo(TypeInformation.of(String.class), TypeInformation.of(Integer.class)));
 
-            filtered_record.writeAsCsv(output_file_dir);
-            env.execute();
-            //filtered_record.print();
+            DataSet<Tuple2<String, Integer>> one = filtered_record
+                    .map(tuple -> new Tuple2<String, Integer>(tuple.f0, tuple.f1))
+                    .returns(new TupleTypeInfo(TypeInformation.of(String.class), TypeInformation.of(Integer.class)));
+
+
+            DataSet<Tuple2<String, Integer>> grouped_record = one
+                    .groupBy(0)
+                    .sortGroup(0, Order.ASCENDING)
+                    .reduceGroup((tuples, out) -> {
+                        String sample = "";
+                        Integer count = 0;
+
+                        for(Tuple2<String, Integer> tuple : tuples) {
+                            sample = tuple.f0;
+                            count += 1;
+                        }
+
+                        out.collect(new Tuple2<>(sample,count));
+                    })
+                    .returns(new TupleTypeInfo(TypeInformation.of(String.class), TypeInformation.of(Integer.class)));
+
+            //DataSet<Tuple3<String,String, Integer>> joined_record = grouped_record
+                    //.join()
+            //grouped_record.writeAsCsv(output_file_dir);
+            //env.execute();
+            experiment_record.print();
             System.out.println("End of the program!");
         }
         else{
