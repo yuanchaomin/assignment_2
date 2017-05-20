@@ -4,6 +4,7 @@
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.operators.Order;
+import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.util.Collector;
@@ -11,7 +12,6 @@ import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
-import scala.Int;
 
 
 public class measurements_per_researcher {
@@ -31,7 +31,14 @@ public class measurements_per_researcher {
                     .ignoreFirstLine()
                     .includeFields("10000001")
                     .types(String.class, String.class)
-                    .map(tuple -> new Tuple2<String, String>(tuple.f0, tuple.f1))
+                    .flatMap((line, out) -> {
+                        String[] researchers = line.f1.trim().split("\\;\\s|\\;");
+                        String sample = line.f0;
+
+                        for (String rearcher : researchers){
+                            out.collect(new Tuple2<String, String>(rearcher, sample));
+                        }
+                    })
                     .returns(new TupleTypeInfo(TypeInformation.of(String.class), TypeInformation.of(String.class)));
 
             DataSet<Tuple2<String, Integer>> filtered_record = env
@@ -74,11 +81,35 @@ public class measurements_per_researcher {
                     })
                     .returns(new TupleTypeInfo(TypeInformation.of(String.class), TypeInformation.of(Integer.class)));
 
-            //DataSet<Tuple3<String,String, Integer>> joined_record = grouped_record
-                    //.join()
+            DataSet<Tuple2<Integer,String>> joined_record = grouped_record
+                    .join(experiment_record)
+                    .where(0)
+                    .equalTo(1)
+                    .projectFirst(1)
+                    .projectSecond(0);
+
+
+            DataSet<Tuple2<String, Integer>> sumed_record = joined_record
+                    .groupBy(1)
+                    .sortGroup(1, Order.ASCENDING)
+                    .reduceGroup((tuples, out) -> {
+                        String researcher = "";
+                        Integer num_of_experiment = 0;
+
+                        for(Tuple2<Integer,String> tuple : tuples) {
+                            researcher = tuple.f1;
+                            num_of_experiment += tuple.f0;
+                        }
+                                out.collect(new Tuple2<>(researcher, num_of_experiment));
+                            }
+                    )
+                    .returns(new TupleTypeInfo(TypeInformation.of(String.class),TypeInformation.of(Integer.class)));
+
+
+
             //grouped_record.writeAsCsv(output_file_dir);
             //env.execute();
-            experiment_record.print();
+            sumed_record.print();
             System.out.println("End of the program!");
         }
         else{
