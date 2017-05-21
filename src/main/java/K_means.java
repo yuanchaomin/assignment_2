@@ -93,7 +93,8 @@ public class K_means {
             }  //generate center point
 
             DataSet<Center> centroids = env.fromCollection(genCenter);
-            centroids.print();
+            //centroids.print();
+
             //set number of bulk iterations
             IterativeDataSet<Center> first_centroids = centroids.iterate(iterate_size);
 
@@ -155,7 +156,7 @@ public class K_means {
                     .projectFirst(0,1)
                     .projectSecond(1,2,3);
 
-
+            //final_result.print();
             final_result.writeAsCsv(output_task2_resuslt_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             labeled_points_tuple.writeAsCsv(ouput_label_points_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             last_centerid_with_id.writeAsCsv(output_last_centerid_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
