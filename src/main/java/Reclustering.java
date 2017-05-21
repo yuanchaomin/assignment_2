@@ -3,11 +3,14 @@ import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.tuple.Tuple;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.api.java.tuple.Tuple7;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
+
+import java.util.Collections;
+import java.util.LinkedList;
 
 import static java.lang.Math.sqrt;
 
@@ -58,7 +61,32 @@ public class Reclustering {
                             TypeInformation.of(Double.class), TypeInformation.of(Double.class)));
 
 
-            error_of_points.print();
+            DataSet<Tuple2<Integer, LinkedList<Double>>> sorted_error_of_points = error_of_points
+                    .groupBy(0)
+                    .reduceGroup((tuples, out) -> {
+                        int cluster_id = -1;
+                        LinkedList<Double> error_List = new LinkedList<>();
+                        LinkedList<Double> sorted_error_List = new LinkedList<>();
+
+                        for(Tuple5<Integer, Double, Double, Double, Double> tuple : tuples) {
+                             cluster_id = tuple.f0;
+                             error_List.add(tuple.f4);
+
+                        }
+
+                        Collections.sort(error_List);
+
+                        for (int i = 0; i <= 10; i++) {
+                            sorted_error_List.add(error_List.get(i));
+                        }
+
+                        out.collect(new Tuple2<>(cluster_id, sorted_error_List));
+
+
+                    })
+                    .returns(new TupleTypeInfo(TypeInformation.of(Integer.class), TypeInformation.of(LinkedList.class)));
+
+            sorted_error_of_points.print();
         }
 
 
