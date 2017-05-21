@@ -16,7 +16,7 @@ import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.api.java.typeutils.PojoTypeInfo;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.configuration.Configuration;
-
+import org.apache.flink.core.fs.FileSystem;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,9 +33,12 @@ public class K_means {
         final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
         // get input file from local system
 
-        if (args.length >= 2) {
+        // args format: (input_measurement_file_dir, output_task2_resuslt_dir,ouput_label_points_file_dir, output_last_centerid_file_dir, K(para for K_means algorithm), iteration_size)
+        if (args.length >= 4) {
             String measurement_file_input_dir = args[0];
-            String output_file_dir = args[1];
+            String output_task2_resuslt_dir = args[1];
+            String ouput_label_points_file_dir= args[2];
+            String output_last_centerid_file_dir = args[3];
 
             //generate dataset points
             DataSet<Tuple6<String, Integer,Integer,Double,Double,Double>> filtered_record = env
@@ -71,11 +74,11 @@ public class K_means {
             //generate dataset centroid_points
             int k = 5; //defulet k = 5
             int iterate_size = 10; //defult iteration = 10
-            if(args.length>2){
-                k= Integer.parseInt(args[2]);
+            if(args.length>4){
+                k= Integer.parseInt(args[4]);
             }
-            if(args.length>3){
-                iterate_size = Integer.parseInt(args[3]);
+            if(args.length>5){
+                iterate_size = Integer.parseInt(args[5]);
             }
             List<Center> genCenter = new ArrayList<Center>();
 
@@ -108,6 +111,11 @@ public class K_means {
             DataSet<Tuple2<Integer, Point>> labeled_points = points
                     .map(new Select_Centroid()).withBroadcastSet(last_centroids, "centerids");
 
+            DataSet<Tuple4<Integer, Double,Double,Double>> labeled_points_tuple = labeled_points
+                    .map(tuple -> new Tuple4<Integer, Double, Double, Double>(tuple.f0, tuple.f1.ly6c, tuple.f1.CD11b, tuple.f1.SCA1))
+                    .returns(new TupleTypeInfo(TypeInformation.of(Integer.class), TypeInformation.of(Double.class), TypeInformation.of(Double.class),
+                            TypeInformation.of(Double.class)));
+
 
             // return (id, count), where count equal 1 for each record.
             DataSet<Tuple2<Integer, Integer>> append_count_column_record = labeled_points
@@ -125,18 +133,19 @@ public class K_means {
                     .sum(1);
 
 
-            //return the last centerid for each cluster with format(cluster_id, center_Point)
+
             DataSet<Tuple4<Integer, Double, Double, Double >> last_centerid_with_id = last_centroids
                     .flatMap((center_point, out) -> {
-                            int cluster_id = center_point.clusterID;
-                            Double ly6c = center_point.ly6c;
-                            Double cd11b = center_point.CD11b;
-                            Double sca1 = center_point.SCA1;
+                        int cluster_id = center_point.clusterID;
+                        Double ly6c = center_point.ly6c;
+                        Double cd11b = center_point.CD11b;
+                        Double sca1 = center_point.SCA1;
 
-                            out.collect( new Tuple4<>(cluster_id, ly6c, cd11b, sca1 ));
+                        out.collect( new Tuple4<>(cluster_id, ly6c, cd11b, sca1 ));
 
                     })
                     .returns(new TupleTypeInfo(TypeInformation.of(Integer.class), TypeInformation.of(Double.class), TypeInformation.of(Double.class), TypeInformation.of(Double.class)));
+
 
             // return the final result with format(cluster_id, number_of_measurements, ly6c, cd11b, sca1)
             DataSet<Tuple5<Integer, Integer,Double,Double,Double>> final_result = sum_number_of_points
@@ -146,7 +155,13 @@ public class K_means {
                     .projectFirst(0,1)
                     .projectSecond(1,2,3);
 
-            final_result.print();
+
+            final_result.writeAsCsv(output_task2_resuslt_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+            labeled_points_tuple.writeAsCsv(ouput_label_points_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+            last_centerid_with_id.writeAsCsv(output_last_centerid_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+            env.execute();
+
+
 
 
 
