@@ -63,6 +63,7 @@ public class K_means {
                     })
                     .returns(new TupleTypeInfo(TypeInformation.of(String.class), TypeInformation.of(Integer.class)));
 
+
             DataSet<Tuple3<Double, Double, Double>> for_kmeans_record = filtered_record
                     .map(tuple  -> new Tuple3<Double, Double, Double>(tuple.f3, tuple.f4, tuple.f5))
                     .returns(new TupleTypeInfo(TypeInformation.of(Double.class), TypeInformation.of(Double.class), TypeInformation.of(Double.class)));
@@ -156,20 +157,14 @@ public class K_means {
                     .projectFirst(0,1)
                     .projectSecond(1,2,3);
 
-            final_result.print();
 
-//            final_result.writeAsCsv(output_task2_resuslt_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
-//            labeled_points_tuple.writeAsCsv(ouput_label_points_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
-//            last_centerid_with_id.writeAsCsv(output_last_centerid_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
-//            env.execute();
+            //last_centroids .print();
 
+            final_result.writeAsCsv(output_task2_resuslt_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+            labeled_points_tuple.writeAsCsv(ouput_label_points_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+            last_centerid_with_id.writeAsCsv(output_last_centerid_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+            env.execute();
 
-
-
-
-
-            //grouped_record.writeAsCsv(output_file_dir);
-            //env.execute();
             System.out.println("End of the program!");
         }
         else{
