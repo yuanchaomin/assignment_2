@@ -149,7 +149,7 @@ public class Reclustering {
             }
 
             DataSet<Center> centroids = env.fromCollection(genCenter);
-            //centroids.print();
+            centroids.print();
 
             //set number of bulk iterations
             IterativeDataSet<Center> first_centroids = centroids.iterate(iterate_size);
@@ -164,53 +164,53 @@ public class Reclustering {
             // put new_center_id into next iteration
             DataSet<Center> last_centroids = first_centroids.closeWith(new_center_id);
 
-            //last_centroids.print();
-            DataSet<Tuple2<Integer, Point>> labeled_points = points
-                    .map(new K_means.Select_Centroid()).withBroadcastSet(last_centroids, "centerids");
-
-
-            //labeled_points.print();
-
-            // return (id, count), where count equal 1 for each record.
-            DataSet<Tuple2<Integer, Integer>> append_count_column_record = labeled_points
-                    .flatMap((tuple, out) -> {
-                        int id = tuple.f0;
-                        int count = 1;
-
-                        out.collect(new Tuple2<>(id, count));
-                    })
-                    .returns(new TupleTypeInfo(TypeInformation.of(Integer.class), TypeInformation.of(Integer.class)));
-
-            // calculate the number of points within one cluster, return(id, count) where count is the number in that cluster(id)
-            DataSet<Tuple2<Integer,Integer>> sum_number_of_points = append_count_column_record
-                    .groupBy(0)
-                    .sum(1);
-
-
-
-            DataSet<Tuple4<Integer, Double, Double, Double >> last_centerid_with_id = last_centroids
-                    .flatMap((center_point, out) -> {
-                        int cluster_id = center_point.clusterID;
-                        Double ly6c = center_point.ly6c;
-                        Double cd11b = center_point.CD11b;
-                        Double sca1 = center_point.SCA1;
-
-                        out.collect( new Tuple4<>(cluster_id, ly6c, cd11b, sca1 ));
-
-                    })
-                    .returns(new TupleTypeInfo(TypeInformation.of(Integer.class), TypeInformation.of(Double.class), TypeInformation.of(Double.class), TypeInformation.of(Double.class)));
-
-
-            // return the final result with format(cluster_id, number_of_measurements, ly6c, cd11b, sca1)
-            DataSet<Tuple5<Integer, Integer,Double,Double,Double>> final_result = sum_number_of_points
-                    .join(last_centerid_with_id)
-                    .where(0)
-                    .equalTo(0)
-                    .projectFirst(0,1)
-                    .projectSecond(1,2,3);
-
-            final_result.print();
-            //final_result.writeAsCsv(output_task3_result_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+            last_centroids.print();
+//            DataSet<Tuple2<Integer, Point>> labeled_points = points
+//                    .map(new K_means.Select_Centroid()).withBroadcastSet(last_centroids, "centerids");
+//
+//
+//            //labeled_points.print();
+//
+//            // return (id, count), where count equal 1 for each record.
+//            DataSet<Tuple2<Integer, Integer>> append_count_column_record = labeled_points
+//                    .flatMap((tuple, out) -> {
+//                        int id = tuple.f0;
+//                        int count = 1;
+//
+//                        out.collect(new Tuple2<>(id, count));
+//                    })
+//                    .returns(new TupleTypeInfo(TypeInformation.of(Integer.class), TypeInformation.of(Integer.class)));
+//
+//            // calculate the number of points within one cluster, return(id, count) where count is the number in that cluster(id)
+//            DataSet<Tuple2<Integer,Integer>> sum_number_of_points = append_count_column_record
+//                    .groupBy(0)
+//                    .sum(1);
+//
+//
+//
+//            DataSet<Tuple4<Integer, Double, Double, Double >> last_centerid_with_id = last_centroids
+//                    .flatMap((center_point, out) -> {
+//                        int cluster_id = center_point.clusterID;
+//                        Double ly6c = center_point.ly6c;
+//                        Double cd11b = center_point.CD11b;
+//                        Double sca1 = center_point.SCA1;
+//
+//                        out.collect( new Tuple4<>(cluster_id, ly6c, cd11b, sca1 ));
+//
+//                    })
+//                    .returns(new TupleTypeInfo(TypeInformation.of(Integer.class), TypeInformation.of(Double.class), TypeInformation.of(Double.class), TypeInformation.of(Double.class)));
+//
+//
+//            // return the final result with format(cluster_id, number_of_measurements, ly6c, cd11b, sca1)
+//            DataSet<Tuple5<Integer, Integer,Double,Double,Double>> final_result = sum_number_of_points
+//                    .join(last_centerid_with_id)
+//                    .where(0)
+//                    .equalTo(0)
+//                    .projectFirst(0,1)
+//                    .projectSecond(1,2,3);
+//
+//            final_result.print();
+//            //final_result.writeAsCsv(output_task3_result_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
         }
         else{
             System.out.println("Wrong input parameters!");
