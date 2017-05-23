@@ -156,11 +156,12 @@ public class K_means {
                     .projectFirst(0,1)
                     .projectSecond(1,2,3);
 
-            //final_result.print();
-            final_result.writeAsCsv(output_task2_resuslt_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
-            labeled_points_tuple.writeAsCsv(ouput_label_points_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
-            last_centerid_with_id.writeAsCsv(output_last_centerid_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
-            env.execute();
+            final_result.print();
+
+//            final_result.writeAsCsv(output_task2_resuslt_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+//            labeled_points_tuple.writeAsCsv(ouput_label_points_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+//            last_centerid_with_id.writeAsCsv(output_last_centerid_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+//            env.execute();
 
 
 
@@ -198,6 +199,7 @@ public class K_means {
         public void open(Configuration parameters) {
             this.centerids = getRuntimeContext().getBroadcastVariable("centerids");
         }
+
         public Tuple2<Integer, Point> map(Point p) throws  Exception {
 
             double minDis = Double.MAX_VALUE;
