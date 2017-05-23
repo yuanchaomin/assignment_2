@@ -7,6 +7,7 @@ import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.util.Collector;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
@@ -91,7 +92,7 @@ public class measurements_per_researcher {
 
             DataSet<Tuple2<String, Integer>> sumed_record = joined_record
                     .groupBy(1)
-                    .sortGroup(1, Order.ASCENDING)
+                    .sortGroup(0, Order.DESCENDING)
                     .reduceGroup((tuples, out) -> {
                         String researcher = "";
                         Integer num_of_experiment = 0;
@@ -107,9 +108,9 @@ public class measurements_per_researcher {
 
 
 
-            //grouped_record.writeAsCsv(output_file_dir);
-            //env.execute();
-            sumed_record.print();
+            sumed_record .writeAsCsv(output_file_dir,"\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+            env.execute();
+            //sumed_record .print();
             System.out.println("End of the program!");
         }
         else{
