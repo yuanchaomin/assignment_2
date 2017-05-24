@@ -15,7 +15,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 
 
-public class measurements_per_researcher {
+public class Summaring {
 
     public static void main(String[] args) throws Exception {
         // where args[0] is input of measurement_file, and args[1] is the input of experiments table,
@@ -106,11 +106,11 @@ public class measurements_per_researcher {
                     )
                     .returns(new TupleTypeInfo(TypeInformation.of(String.class),TypeInformation.of(Integer.class)));
 
+            DataSet<Tuple2<String, Integer>> final_result = sumed_record
+                    .partitionByRange(1)
+                    .withOrders(Order.DESCENDING);
 
-
-            sumed_record .writeAsCsv(output_file_dir).setParallelism(1);
-            env.execute();
-            sumed_record .print();
+            final_result.print();
 
 
             System.out.println("End of the program!");
