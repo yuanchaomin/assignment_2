@@ -158,7 +158,7 @@ public class K_means {
                     .projectSecond(1,2,3);
 
 
-            //last_centroids .print();
+            final_result .print();
 
             final_result.writeAsCsv(output_task2_resuslt_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             labeled_points_tuple.writeAsCsv(ouput_label_points_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
