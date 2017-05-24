@@ -108,9 +108,11 @@ public class measurements_per_researcher {
 
 
 
-            sumed_record .writeAsCsv(output_file_dir,"\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+            sumed_record .writeAsCsv(output_file_dir).setParallelism(1);
             env.execute();
-            //sumed_record .print();
+            sumed_record .print();
+
+
             System.out.println("End of the program!");
         }
         else{
