@@ -12,10 +12,7 @@ import org.apache.flink.api.java.tuple.Tuple7;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.core.fs.FileSystem;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static java.lang.Math.sqrt;
 
@@ -68,12 +65,12 @@ public class Reclustering {
                     //System.out.print("error_of_points");
                     //error_of_points.print();
 
-            DataSet<Tuple2<Integer, LinkedList<Double>>> sorted_error_of_points = error_of_points
+            DataSet<Tuple2<Integer, ArrayList<Double>>> sorted_error_of_points = error_of_points
                     .groupBy(0)
                     .reduceGroup((tuples, out) -> {
                         int cluster_id = -1;
-                        LinkedList<Double> error_List = new LinkedList<>();
-                        LinkedList<Double> sorted_error_List = new LinkedList<>();
+                        ArrayList<Double> error_List = new ArrayList<>();
+                        ArrayList<Double> sorted_error_List = new ArrayList<>();
 
                         for(Tuple5<Integer, Double, Double, Double, Double> tuple : tuples) {
                              cluster_id = tuple.f0;
@@ -91,7 +88,7 @@ public class Reclustering {
 
 
                     })
-                    .returns(new TupleTypeInfo(TypeInformation.of(Integer.class), TypeInformation.of(LinkedList.class)));
+                    .returns(new TupleTypeInfo(TypeInformation.of(Integer.class), TypeInformation.of(ArrayList.class)));
 
             //System.out.print("sorted_error_of_points");
             //sorted_error_of_points.print();
@@ -100,7 +97,7 @@ public class Reclustering {
                     .flatMap((tuple, out) -> {
                         int cluster_id = -1;
                         cluster_id = tuple.f0;
-                        LinkedList List = tuple.f1;
+                        ArrayList List = tuple.f1;
                         Double error = 0.0;
 
 
