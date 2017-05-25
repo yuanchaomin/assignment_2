@@ -207,7 +207,9 @@ public class Reclustering {
 
             final_result.print();
             final_result.writeAsCsv(output_task3_result_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+            env.execute();
         }
+
         else{
             System.out.println("Wrong input parameters!");
             System.out.println("End of the program!");
