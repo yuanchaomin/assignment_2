@@ -17,10 +17,9 @@ import org.apache.flink.api.java.typeutils.PojoTypeInfo;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.fs.FileSystem;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+
+import java.io.*;
+import java.util.*;
 
 /**
  * Created by Chaomin on 5/20/2017.
@@ -37,8 +36,8 @@ public class K_means {
         if (args.length >= 4) {
             String measurement_file_input_dir = args[0];
             String output_task2_resuslt_dir = args[1];
-            String ouput_label_points_file_dir= args[2];
-            String output_last_centerid_file_dir = args[3];
+            String ouput_label_points_file_dir= args[3];
+            String output_last_centerid_file_dir = args[4];
 
             //generate dataset points
             DataSet<Tuple6<String, Integer,Integer,Double,Double,Double>> filtered_record = env
@@ -75,11 +74,11 @@ public class K_means {
             //generate dataset centroid_points
             int k = 5; //defulet k = 5
             int iterate_size = 10; //defult iteration = 10
-            if(args.length>4){
-                k= Integer.parseInt(args[4]);
+            if(args.length>6){
+                k= Integer.parseInt(args[5]);
             }
-            if(args.length>5){
-                iterate_size = Integer.parseInt(args[5]);
+            if(args.length>7){
+                iterate_size = Integer.parseInt(args[6]);
             }
             List<Center> genCenter = new ArrayList<Center>();
 
@@ -158,12 +157,14 @@ public class K_means {
                     .projectSecond(1,2,3);
 
 
-            final_result .print();
+
 
             final_result.writeAsCsv(output_task2_resuslt_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             labeled_points_tuple.writeAsCsv(ouput_label_points_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             last_centerid_with_id.writeAsCsv(output_last_centerid_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             env.execute();
+            sort_file(args[1], args[2]);
+            //final_result .print();
 
             System.out.println("End of the program!");
         }
@@ -172,6 +173,44 @@ public class K_means {
             System.out.println("End of the program!");
             System.exit(0);
         }
+    }
+
+    public static void sort_file(String input_address, String output_address) throws FileNotFoundException, IOException{
+
+        HashMap<String, String> a = new HashMap<>();
+
+        BufferedReader input = new BufferedReader(new FileReader(input_address));
+        String line = input.readLine();
+
+        while (line != null) {
+            String columns [] = line.split("\\,\\d+\\d\\,");
+
+            a.put(columns[0], columns[1]);
+            line = input.readLine();
+        }
+
+        ArrayList<Map.Entry<String,String>> List = new ArrayList<Map.Entry<String,String>>(a.entrySet());
+        //Comparator<Integer> comparator = Collections.reverseOrder();
+        Collections.sort(List, new Comparator<Map.Entry<String,String>>()
+        {
+            public int compare( Map.Entry<String,String> o1, Map.Entry<String,String> o2 ) {
+                return (o1.getKey()).compareTo(o2.getKey());
+            }
+        } );
+
+        new File(output_address.replace("task2_result.csv", "")).mkdirs();
+        FileWriter writer = new FileWriter(output_address);
+
+        for (Map.Entry<String,String> j : List) {
+            writer.append(j.getKey())
+                    .append(",")
+                    .append(j.getValue())
+                    .append("\n");
+        }
+
+
+        writer.close();
+        //System.out.println(List);
     }
 
 
