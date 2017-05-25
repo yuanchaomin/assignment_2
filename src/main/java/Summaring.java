@@ -111,7 +111,8 @@ public class Summaring {
                     .withOrders(Order.DESCENDING);
 
             final_result.print();
-
+            final_result.writeAsCsv(output_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+            env.execute();
 
             System.out.println("End of the program!");
         }
