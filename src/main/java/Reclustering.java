@@ -19,6 +19,7 @@ import static java.lang.Math.sqrt;
 /**
  * Created by Chaomin on 5/21/2017.
  */
+
 public class Reclustering {
     public static void main(String[] args) throws Exception {
 
