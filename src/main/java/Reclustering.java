@@ -125,11 +125,11 @@ public class Reclustering {
             //generate dataset centroid_points
             int k = 5; //defulet k = 5
             int iterate_size = 10; //defult iteration = 10
-            if(args.length>3){
-                k= Integer.parseInt(args[3]);
-            }
             if(args.length>4){
-                iterate_size = Integer.parseInt(args[4]);
+                k= Integer.parseInt(args[4]);
+            }
+            if(args.length>5){
+                iterate_size = Integer.parseInt(args[5]);
             }
             List<Center> genCenter = new ArrayList<Center>();
 
@@ -202,9 +202,10 @@ public class Reclustering {
                     .projectFirst(0,1)
                     .projectSecond(1,2,3);
 
-            final_result.print();
+            //final_result.print();
             final_result.writeAsCsv(output_task3_result_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             env.execute();
+            K_means.sort_file(args[2], args[3]);
         }
 
         else{
