@@ -14,8 +14,11 @@ import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 
+import java.io.*;
+import java.util.*;
 
-public class Summaring {
+
+public class Summarzing {
 
     public static void main(String[] args) throws Exception {
         // where args[0] is input of measurement_file, and args[1] is the input of experiments table,
@@ -106,14 +109,12 @@ public class Summaring {
                     )
                     .returns(new TupleTypeInfo(TypeInformation.of(String.class),TypeInformation.of(Integer.class)));
 
-            DataSet<Tuple2<String, Integer>> final_result = sumed_record
-                    .partitionByRange(1)
-                    .withOrders(Order.DESCENDING);
 
-            final_result.print();
-            final_result.writeAsCsv(output_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+
+
+            sumed_record.writeAsCsv(output_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             env.execute();
-
+            sort_file(args[2], args[3]);
             System.out.println("End of the program!");
         }
         else{
@@ -121,6 +122,48 @@ public class Summaring {
             System.out.println("End of the program!");
             System.exit(0);
         }
+    }
+
+    public static void sort_file(String input_address, String output_address ) throws FileNotFoundException, IOException {
+
+        HashMap<String, Integer> a = new HashMap<String, Integer>();
+        HashMap<String, Integer> b = new HashMap<String, Integer>();
+
+        //final  String input_address = "C:/Users/Chaomin/Desktop/assignment2_data/temp/task1_result.csv";
+        //final  String output_address = "C:/Users/Chaomin/Desktop/assignment2_data/result/task1_result.csv";
+        //final String input_address = "";
+
+        BufferedReader input = new BufferedReader(new FileReader(input_address));
+        String line = input.readLine();
+
+        while (line != null) {
+            String columns [] = line.split(",");
+            a.put(columns[0], Integer.parseInt(columns[1]));
+            line = input.readLine();
+        }
+
+        ArrayList<Map.Entry<String,Integer>> List = new ArrayList<Map.Entry<String,Integer>>(a.entrySet());
+        //Comparator<Integer> comparator = Collections.reverseOrder();
+        Collections.sort(List, new Comparator<Map.Entry<String,Integer>>()
+        {
+            public int compare( Map.Entry<String,Integer> o1, Map.Entry<String,Integer> o2 ) {
+                return (o2.getValue()).compareTo(o1.getValue() );
+            }
+        } );
+
+        new File(output_address.replace("task1_result.csv", "")).mkdirs();
+        FileWriter writer = new FileWriter(output_address);
+
+        for (Map.Entry<String,Integer> j : List) {
+            writer.append(j.getKey())
+                    .append(",")
+                    .append(j.getValue().toString())
+                    .append("\n");
+        }
+
+
+        writer.close();
+        //System.out.println(List);
     }
 
     public static class Filter implements FlatMapFunction<String, Tuple3<String, Double, Double>> {
