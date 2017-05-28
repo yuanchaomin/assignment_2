@@ -159,7 +159,7 @@ public class K_means {
 
 
 
-            final_result.writeAsCsv(output_task2_resuslt_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+            final_result.writeAsCsv(output_task2_resuslt_dir, "\n", "\t",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             labeled_points_tuple.writeAsCsv(ouput_label_points_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             last_centerid_with_id.writeAsCsv(output_last_centerid_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             env.execute();

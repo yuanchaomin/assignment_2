@@ -204,7 +204,7 @@ public class Reclustering {
                     .projectSecond(1,2,3);
 
             //final_result.print();
-            final_result.writeAsCsv(output_task3_result_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+            final_result.writeAsCsv(output_task3_result_dir, "\n", "\t",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             env.execute();
             K_means.sort_file(args[2], args[3]);
         }

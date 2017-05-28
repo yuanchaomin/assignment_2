@@ -112,7 +112,7 @@ public class Summarzing {
 
 
 
-            sumed_record.writeAsCsv(output_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+            sumed_record.writeAsCsv(output_file_dir, "\n", "\t",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             env.execute();
             sort_file(args[2], args[3]);
             System.out.println("End of the program!");
