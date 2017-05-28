@@ -159,11 +159,11 @@ public class K_means {
 
 
 
-            final_result.writeAsCsv(output_task2_resuslt_dir, "\n", "\t",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+            final_result.writeAsCsv(output_task2_resuslt_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             labeled_points_tuple.writeAsCsv(ouput_label_points_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             last_centerid_with_id.writeAsCsv(output_last_centerid_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             env.execute();
-            sort_file(args[1], args[2]);
+            sort_file(args[1], args[2], "task2_result");
             //final_result .print();
 
             System.out.println("End of the program!");
@@ -175,17 +175,18 @@ public class K_means {
         }
     }
 
-    public static void sort_file(String input_address, String output_address) throws FileNotFoundException, IOException{
+    public static void sort_file(String input_address, String output_address, String s) throws FileNotFoundException, IOException{
 
         HashMap<String, String> a = new HashMap<>();
-
+        //s = "task2_result"
         BufferedReader input = new BufferedReader(new FileReader(input_address));
         String line = input.readLine();
 
         while (line != null) {
-            String columns [] = line.split("\\,\\d+\\d\\,");
-
-            a.put(columns[0], columns[1]);
+            String columns [] = line.split(",");
+            String rest = columns[1] + "\t" + columns[2] + "\t" +
+                            columns[3] + "\t"  + columns[4];
+            a.put(columns[0], rest);
             line = input.readLine();
         }
 
@@ -198,12 +199,12 @@ public class K_means {
             }
         } );
 
-        new File(output_address.replace("task2_result.csv", "")).mkdirs();
+        new File(output_address.replace(s, "")).mkdirs();
         FileWriter writer = new FileWriter(output_address);
 
         for (Map.Entry<String,String> j : List) {
             writer.append(j.getKey())
-                    .append(",")
+                    .append("\t")
                     .append(j.getValue())
                     .append("\n");
         }

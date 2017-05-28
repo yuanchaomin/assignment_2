@@ -112,7 +112,7 @@ public class Summarzing {
 
 
 
-            sumed_record.writeAsCsv(output_file_dir, "\n", "\t",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+            sumed_record.writeAsCsv(output_file_dir, "\n", ",",  FileSystem.WriteMode.OVERWRITE).setParallelism(1);
             env.execute();
             sort_file(args[2], args[3]);
             System.out.println("End of the program!");
@@ -127,7 +127,7 @@ public class Summarzing {
     public static void sort_file(String input_address, String output_address ) throws FileNotFoundException, IOException {
 
         HashMap<String, Integer> a = new HashMap<String, Integer>();
-        HashMap<String, Integer> b = new HashMap<String, Integer>();
+        //HashMap<String, Integer> b = new HashMap<String, Integer>();
 
         //final  String input_address = "C:/Users/Chaomin/Desktop/assignment2_data/temp/task1_result.csv";
         //final  String output_address = "C:/Users/Chaomin/Desktop/assignment2_data/result/task1_result.csv";
@@ -156,7 +156,7 @@ public class Summarzing {
 
         for (Map.Entry<String,Integer> j : List) {
             writer.append(j.getKey())
-                    .append(",")
+                    .append("\t")
                     .append(j.getValue().toString())
                     .append("\n");
         }
